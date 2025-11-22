@@ -1,0 +1,274 @@
+.input {
+  width: calc(100% - 2rem);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  background-color: var(--bg-color-dark);
+  color: var(--color-dark);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input-small {
+  width: 200px;
+}
+
+.input-bill {
+  width: 60px;
+}
+.input-bill-title {
+  width: 400px;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+
+.input-medium {
+  width: 400px;
+}
+
+.input-large {
+  width: 600px;
+}
+
+.input-full {
+  width: 100%;
+}
+
+.input-responsive {
+  width: 100%;
+  max-width: 500px;
+}
+
+.input:focus {
+  border-color: var(--accent-dark);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.input::placeholder {
+  color: rgba(241, 245, 249, 0.5);
+}
+
+/* Light theme input styles */
+body.light .input {
+  background-color: var(--bg-color-light);
+  color: var(--color-light);
+  border: 1px solid var(--border-light);
+}
+
+body.light .input:focus {
+  border-color: var(--accent-light);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+body.light .input::placeholder {
+  color: rgba(71, 85, 105, 0.5);
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.product-item {
+  background-color: rgba(99, 102, 241, 0.05);
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.product-item:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: var(--accent-dark);
+}
+
+.product-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-dark);
+  margin-bottom: 0.25rem;
+}
+
+.product-barcode {
+  font-size: 0.85rem;
+  color: rgba(241, 245, 249, 0.7);
+  font-family: 'Courier New', monospace;
+}
+.account-date {
+  font-size: 0.85rem;
+  color: rgba(241, 245, 249, 0.7);
+}
+
+.product-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.product-quantity {
+  font-size: 0.9rem;
+  color: rgba(241, 245, 249, 0.8);
+}
+.account-balance {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: rgba(241, 245, 249, 0.8);
+}
+
+.product-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.product-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-dark);
+}
+
+.product-time {
+  font-size: 0.8rem;
+  color: rgba(241, 245, 249, 0.6);
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.btn-icon:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.total-info {
+  font-size: 1.2rem;
+  color: var(--accent-dark);
+}
+
+.footer-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Light theme product list styles */
+body.light .product-item {
+  background-color: rgba(79, 70, 229, 0.03);
+  border: 1px solid var(--border-light);
+}
+
+body.light .product-item:hover {
+  background-color: rgba(79, 70, 229, 0.08);
+  border-color: var(--accent-light);
+}
+
+body.light .product-name {
+  color: var(--color-light);
+}
+
+body.light .product-barcode {
+  color: rgba(71, 85, 105, 0.7);
+}
+body.light .account-time {
+  color: rgba(71, 85, 105, 0.7);
+}
+
+body.light .product-quantity {
+  color: rgba(71, 85, 105, 0.8);
+}
+
+body.light .product-price {
+  color: var(--accent-light);
+}
+
+body.light .product-meta {
+  border-top: 1px solid var(--border-light);
+}
+
+body.light .product-time {
+  color: rgba(71, 85, 105, 0.6);
+}
+
+body.light .btn-icon:hover {
+  background-color: rgba(79, 70, 229, 0.15);
+}
+
+body.light .total-info {
+  color: var(--accent-light);
+}
+
+/* Scrollbar styling for product list */
+.product-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.product-list::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 3px;
+}
+
+.product-list::-webkit-scrollbar-thumb {
+  background: var(--accent-dark);
+  border-radius: 3px;
+}
+
+body.light .product-list::-webkit-scrollbar-thumb {
+  background: var(--accent-light);
+}
+
+/* Responsive design for product items */
+@media (max-width: 768px) {
+  .product-main {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .product-details {
+    align-items: flex-start;
+  }
+  
+  .product-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .product-actions {
+    align-self: flex-end;
+  }
+}

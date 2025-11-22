@@ -1,0 +1,111 @@
+/* Account Info Styles - Two Column Layout */
+.account-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  background-color: rgba(26, 35, 50, 0.3);
+}
+
+.account-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: rgba(26, 35, 50, 0.4);
+  transition: all 0.2s ease;
+}
+
+.account-info-label {
+  font-size: 0.8rem;
+  color: rgba(241, 245, 249, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.account-info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+  word-break: break-word;
+}
+
+.account-info-value.debt {
+  color: #ef4444;
+}
+
+.account-info-value.balance {
+  color: #10b981;
+}
+
+.account-info-value.balance.negative {
+  color: #ef4444;
+}
+
+/* Light theme account info styles */
+body.light .account-info {
+  border: 1px solid var(--border-light);
+  background-color: rgba(248, 250, 252, 0.5);
+}
+
+body.light .account-info-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-light);
+}
+
+body.light .account-info-item:hover {
+  background-color: rgba(255, 255, 255, 1);
+  border-color: var(--accent-light);
+}
+
+body.light .account-info-label {
+  color: rgba(71, 85, 105, 0.7);
+}
+
+body.light .account-info-value {
+  color: var(--color-light);
+}
+
+/* Responsive design for account info */
+@media (max-width: 768px) {
+  .account-info {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .account-info-item {
+    padding: 0.75rem;
+  }
+  
+  .account-info-label {
+    font-size: 0.75rem;
+  }
+  
+  .account-info-value {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-info {
+    padding: 0.75rem;
+  }
+  
+  .account-info-item {
+    padding: 0.5rem;
+  }
+  
+  .account-info-label {
+    font-size: 0.7rem;
+  }
+  
+  .account-info-value {
+    font-size: 0.9rem;
+  }
+}
