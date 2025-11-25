@@ -92,6 +92,18 @@ body {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
+.sidebar-items {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  height: 32px;
+}
+.sidebar-items img {
+  width: auto;
+  height: 32px;
+}
+
 .sidebar-header {
   display: flex;
   justify-content: space-between;
