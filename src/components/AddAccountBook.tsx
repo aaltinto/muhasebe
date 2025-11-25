@@ -5,7 +5,16 @@ import add from "../assets/add.svg";
 import deleteBtn from "../assets/delete.svg";
 import edit from "../assets/edit.svg";
 import { ProductLine } from "./ProductLine";
-import { accountBook, setupAccountBook } from "../db/accounts";
+import {
+  accountBook,
+  setupAccountBook,
+  getAccountLines,
+  createAccountLine,
+  accountLine,
+  getAccountLinesById,
+  updateAccountBook,
+  deleteAccountLine,
+} from "../db/accounts";
 
 interface AddAccountBookProps {
   isOpen: boolean;
@@ -14,32 +23,24 @@ interface AddAccountBookProps {
   accountBookData: accountBook | null;
 }
 
-interface ProductLineData {
-  id: number;
-  name: string;
-  netPrice: string;
-  discount: string;
-  tax: string;
-  gross: string;
-}
-
 export function AddAccountBook({
   isOpen,
   onClose,
   accountBookData,
   userId,
 }: AddAccountBookProps) {
-  if (!isOpen) return null;
-
   const lineID = useRef(0);
-  const [accountBook, setAccountBook] = useState<accountBook | null>(
-    accountBookData
-  );
+  const lineCount = useRef(0);
+  const [accountBookTitle, setAccountBookTitle] = useState<string | null>(null);
+  const [accountBook, setAccountBook] = useState<accountBook | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [isLineChanged, setLineChange] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [clickedLineId, setClickedLineId] = useState<number | null>(0);
-  const [productLines, setProductLines] = useState<ProductLineData[]>([
-    { id: 0, name: "", netPrice: "", discount: "", tax: "20", gross: "" },
-  ]);
+  // const [accountLines, setAccountLines] = useState<accountLine[] | null>(null);
+  const [clickedLineId, setClickedLineId] = useState<number | string | null>(
+    `temp-0`
+  );
+  const [productLines, setProductLines] = useState<accountLine[] | null>(null);
 
   const createAccountBook = async () => {
     try {
@@ -55,61 +56,236 @@ export function AddAccountBook({
         balance: 0,
       };
       setAccountBook(newAccount);
+      return newAccount;
     } catch (err) {
       console.error(`Error while getting account book: ${err}`);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAccountLines = async (account_book_id: number) => {
+    try {
+      setLoading(true);
+      let addedLine = false;
+      const result = await getAccountLines(account_book_id);
+      if (!result.success) {
+        throw result.error;
+      }
+      const lines = result.accountLines || [];
+      lines.push({
+        id: `temp-${lineID.current}`,
+        name: "",
+        account_book_id: account_book_id,
+        net_price: "",
+        tax: "20",
+        amount: "1",
+        price: "",
+        discount: "0",
+        total_price: "",
+      });
+      addedLine = true;
+      lineCount.current = lines.length - (addedLine ? 1 : 0);
+      setProductLines(lines);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!accountBook) {
-      createAccountBook();
+    const init = async () => {
+      if (isOpen) {
+        let book = accountBookData;
+
+        if (!book) {
+          book = await createAccountBook();
+        }
+        if (book) {
+          setAccountBook(book);
+          await loadAccountLines(book.id);
+        }
+      }
+    };
+    init();
+    if (accountBook)
+      setAccountBookTitle(accountBook.name)
+  }, [userId, isOpen, accountBookData]);
+
+  if (!isOpen || !productLines || !accountBook) return null;
+
+  const isUpdated = (newLine: accountLine, oldLine: accountLine) => {
+    if (
+      newLine.account_book_id !== oldLine.account_book_id ||
+      newLine.amount !== oldLine.amount ||
+      newLine.discount !== oldLine.discount ||
+      newLine.name !== oldLine.name ||
+      newLine.net_price !== oldLine.net_price ||
+      newLine.price !== oldLine.price ||
+      newLine.tax !== oldLine.tax ||
+      newLine.total_price !== oldLine.total_price
+    ) {
+      return true;
     }
-  }, [userId]);
+    return false;
+  };
+
+  const saveAccountBook = async () => {
+    let total_price: number = 0;
+    try {
+      setSaving(true);
+      for (const line of productLines) {
+        console.log("line id:", line.id, "price:", line.price, "amount:", line.amount);
+        if (line.net_price == '' || !line.net_price) {
+          continue;
+        }
+        total_price += parseFloat(line.price || "0") * parseFloat(line.amount || "1");
+        if (typeof line.id === "number") {
+          const oldLineResult = await getAccountLinesById(line.id);
+          if (!oldLineResult.success) {
+            throw oldLineResult.error;
+          }
+          if (
+            !oldLineResult.accountLines ||
+            !isUpdated(line, oldLineResult.accountLines)
+          ) {
+            console.log('line not updated', line.name)
+            continue;
+          }
+          console.log('line will updated', line.name, line.id)
+        }
+        
+        const amount = parseFloat(line.amount);
+        const net_price = parseFloat(line.net_price);
+        const tax = parseFloat(line.tax);
+        const discount = parseFloat(line.discount);
+        const price = parseFloat(line.price);
+        const line_total = parseFloat(line.price) * amount;
+
+        const result = await createAccountLine(
+          line.name,
+          line.account_book_id,
+          amount,
+          tax,
+          net_price,
+          discount,
+          price,
+          line_total,
+          typeof line.id === "number" ? line.id : null
+        );
+        if (!result.success) {
+          throw result.error;
+        }
+      }
+      const result = await updateAccountBook(
+        accountBook.id,
+        accountBookTitle ? accountBookTitle : accountBook.name,
+        total_price,
+        accountBook.balance
+      );
+      if (!result.success) {
+        throw result.error;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+      setLineChange(false);
+      lineCount.current = productLines.length;
+    }
+  };
+
+  const handleProductLineDelete = async (id: number | string, debt: number) => {
+    try {
+      if (typeof id === "number") {
+        const result = await deleteAccountLine(id);
+        if (!result.success) {
+          throw result.error ? result.error : result.message;
+        }
+        console.log("debt", debt);
+        const updateResult = await updateAccountBook(
+          accountBook.id,
+          accountBook.name,
+          accountBook.debt - debt,
+          accountBook.balance
+        );
+        if (!updateResult.success) {
+          console.error("Account book couldn't updated");
+        }
+        console.log(`Line deleted: ${id}`);
+        return;
+      }
+
+      setProductLines(productLines.filter((line) => line.id !== id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (typeof id === "number") {
+        loadAccountLines(accountBook.id);
+      }
+    }
+  };
 
   const handleAddProductLine = () => {
     lineID.current++;
     setProductLines([
       ...productLines,
       {
-        id: lineID.current,
+        id: `temp-${lineID.current}`,
         name: "",
-        netPrice: "",
-        discount: "",
+        account_book_id: accountBook.id,
+        net_price: "",
+        amount: "1",
+        price: "",
         tax: "20",
-        gross: "",
+        discount: "0",
+        total_price: "",
       },
     ]);
     setClickedLineId(lineID.current);
   };
 
   const handleProductLineChange = (
-    id: number,
-    data: Partial<ProductLineData>
+    id: number | string,
+    data: Partial<accountLine>
   ) => {
-    setProductLines((prevLines) =>
-      prevLines.map((line) => (line.id === id ? { ...line, ...data } : line))
-    );
+
+    setProductLines((prevLines) => {
+      if (!prevLines) return null;
+
+      const updatedLines = prevLines.map((line) => {
+        if (String(line.id) === String(id)) {
+          const updated = { ...line, ...data };
+          return updated;
+        }
+        return line;
+      });
+      return updatedLines;
+    });
   };
 
   // Calculate totals
-  const totalNetPrice = productLines.reduce(
-    (sum, line) => sum + (parseFloat(line.netPrice) || 0),
+  const totalnet_price = productLines.reduce(
+    (sum, line) =>
+      sum + (parseFloat(line.net_price) * parseFloat(line.amount) || 0),
     0
   );
   const totalDiscount = productLines.reduce(
-    (sum, line) => sum + (parseFloat(line.discount) || 0),
+    (sum, line) =>
+      sum + (parseFloat(line.discount) * parseFloat(line.amount) || 0),
     0
   );
   const totalTax = productLines.reduce((sum, line) => {
-    const net = parseFloat(line.netPrice) || 0;
+    const net = parseFloat(line.net_price) || 0;
     const disc = parseFloat(line.discount) || 0;
     const taxRate = parseFloat(line.tax) || 0;
-    return sum + (net - disc) * (taxRate / 100);
+    return sum + (net - disc) * (taxRate / 100) * parseFloat(line.amount);
   }, 0);
   const totalGross = productLines.reduce(
-    (sum, line) => sum + (parseFloat(line.gross) || 0),
+    (sum, line) =>
+      sum + (parseFloat(line.price) * parseFloat(line.amount) || 0),
     0
   );
 
@@ -124,10 +300,15 @@ export function AddAccountBook({
       >
         <div className="modal-header card-flex">
           <div className="btn-group card-flex">
-            <h2>{accountBook ? accountBook.name : "başlık"}</h2>
-            <button className="btn btn-secondary btn-small">
-              <img src={edit} alt="edit" />
-            </button>
+            <input
+              className="input"
+              onChange={(e) => {
+                setLineChange(true)
+                setAccountBookTitle(e.target.value)
+              }}
+              value={accountBookTitle ?? accountBook.name}
+              placeholder="Başlık"
+              />
           </div>
           <div className="btn-group">
             <button
@@ -147,11 +328,12 @@ export function AddAccountBook({
         <div className="card-content big">
           <div className="bill-header">
             <strong>Ürün</strong>
-            <div className="bill-prices">
+            <div className="bill-prices title">
+              <p>Adet</p>
               <p>Net Fiyat</p>
               <p>İskonto</p>
               <p>KDV (%)</p>
-              <p>Brüt</p>
+              <p>{"Toplam"}</p>
             </div>
           </div>
           {productLines.map((line) => (
@@ -165,12 +347,22 @@ export function AddAccountBook({
             >
               <ProductLine
                 _name={line.name}
+                _amount={line.amount}
                 _discount={line.discount}
-                _gross={line.gross}
-                _netPrice={line.netPrice}
+                _price={line.price}
+                _net_price={line.net_price}
                 _tax={line.tax}
                 isClicked={clickedLineId === line.id}
-                onChange={(data) => handleProductLineChange(line.id, data)}
+                onDelete={() =>
+                  handleProductLineDelete(
+                    line.id,
+                    parseFloat(line.price) * parseFloat(line.amount)
+                  )
+                }
+                onChange={(data) => {
+                  handleProductLineChange(line.id, data);
+                  setLineChange(true)
+                }}
               />
             </div>
           ))}
@@ -178,15 +370,35 @@ export function AddAccountBook({
         <div className="card-footer">
           <div className="gross-bill">
             <div className="gross-bill-items">
-              <span data-value={`₺${totalNetPrice.toFixed(2)}`}>
+              <span data-value={`₺${totalnet_price.toFixed(2)}`}>
                 Net Toplam
               </span>
               <span data-value={`₺${totalTax.toFixed(2)}`}>KDV</span>
-              <span data-value={`₺${totalDiscount > 0 ? '-' : ''}${totalDiscount.toFixed(2)}`}>İskonto</span>
+              <span
+                data-value={`₺${
+                  totalDiscount > 0 ? "-" : ""
+                }${totalDiscount.toFixed(2)}`}
+              >
+                İskonto
+              </span>
               <p data-value={`₺${totalGross.toFixed(2)}`}>Toplam</p>
             </div>
           </div>
         </div>
+        {isLineChanged ? (
+          <div className="card-footer">
+            <div className="btn-group">
+              <button onClick={onClose} className="btn btn-secondary">
+                İptal
+              </button>
+              <button onClick={saveAccountBook} className="btn btn-primary">
+                {saving ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          ``
+        )}
       </div>
     </div>
   );

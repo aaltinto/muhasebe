@@ -185,6 +185,7 @@ export default function AccountDetail() {
                   className="account-book-item card-compact card"
                   onClick={() => {
                     setSelectedAccountBooks(book);
+                    console.log("account clicked\n", "selected book:", book);
                     setRegisterModalOpen(true);
                   }}
                 >
@@ -201,7 +202,10 @@ export default function AccountDetail() {
                     <div className="btn-group">
                       <button
                         className="btn btn-delete btn-small"
-                        onClick={() => handleAccountBookDelete(book.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAccountBookDelete(book.id);
+                        }}
                       >
                         <img src={deleteIcon} alt="Delete" />
                       </button>
@@ -226,6 +230,7 @@ export default function AccountDetail() {
         isOpen={isRegisterModalOpen}
         onClose={() => {
           setRegisterModalOpen(false);
+          setSelectedAccountBooks(null);
           fetchAccountBooks();
         }}
         userId={accounts.id}

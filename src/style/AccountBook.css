@@ -64,17 +64,32 @@
 .bill-items p {
     font-size: medium;
     margin: 0;
+    max-width: 400px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 .bill-prices {
     display: flex;
-    gap: 3rem;
+    gap: 1rem;
+}
+
+.bill-prices.title {
+    display: flex;
+    gap: 2.5rem;
+    padding-right: 4rem;
 }
 
 .bill-prices p {
     margin: 0;
-    min-width: 95px;
     text-align: center;
+    min-width: 60px;
+}
+.bill-prices.prices {
+    margin: 0;
+    text-align: center;
+    gap: 2.5rem;
 }
 
 /* Account Books List */
@@ -95,6 +110,7 @@
 }
 
 .account-book-info {
+  cursor: pointer;
   flex: 1;
 }
 

@@ -46,11 +46,13 @@ pub fn run() {
             sql: "CREATE TABLE IF NOT EXISTS account_line (  
                 id INTEGER PRIMARY KEY AUTOINCREMENT,  
                 name TEXT NOT NULL,
-                notes TEXT NOT NULL,
                 account_book_id INTEGER NOT NULL,
+                net_price INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
                 price INTEGER NOT NULL,
-                tax INTEGER NOT NULL DEFAULT 18,
+                tax INTEGER NOT NULL DEFAULT 20,
                 discount INTEGER NOT NULL DEFAULT 0,
+                total_price INTEGER NOT NULL,
                 FOREIGN KEY (account_book_id) REFERENCES account_book(id) ON DELETE CASCADE
             )",
             kind: MigrationKind::Up,  
