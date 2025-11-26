@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import "../style/AccountBook.css";
 import close from "../assets/close.svg";
 import add from "../assets/add.svg";
-import deleteBtn from "../assets/delete.svg";
-import edit from "../assets/edit.svg";
 import { ProductLine } from "./ProductLine";
 import {
   accountBook,
@@ -36,7 +34,6 @@ export function AddAccountBook({
   const [saving, setSaving] = useState(false);
   const [isLineChanged, setLineChange] = useState(false);
   const [loading, setLoading] = useState(false);
-  // const [accountLines, setAccountLines] = useState<accountLine[] | null>(null);
   const [clickedLineId, setClickedLineId] = useState<number | string | null>(
     `temp-0`
   );
@@ -331,8 +328,7 @@ export function AddAccountBook({
             <div className="bill-prices title">
               <p>Adet</p>
               <p>Net Fiyat</p>
-              <p>İskonto</p>
-              <p>KDV (%)</p>
+              <p>Adet Fiyat</p>
               <p>{"Toplam"}</p>
             </div>
           </div>
@@ -381,7 +377,7 @@ export function AddAccountBook({
               >
                 İskonto
               </span>
-              <p data-value={`₺${totalGross.toFixed(2)}`}>Toplam</p>
+              <p data-value={`₺${totalGross.toFixed(2)}`}>Toplam Borç</p>
             </div>
           </div>
         </div>

@@ -52,6 +52,17 @@
     align-items: center;
 }
 
+.bill-header-edit {
+    margin-bottom: 0rem;
+    margin-top: 1rem;
+    padding-bottom: 0rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .bill-items {
     display: flex;
     justify-content: space-between;

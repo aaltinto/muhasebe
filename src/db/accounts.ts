@@ -415,3 +415,50 @@ export async function deleteAccountLine(id: number) {
     };
   }
 }
+
+export async function savePayment (name: string, amount: number, account_book_id: number) {
+  const db = await getDb();
+  try {
+    const result = await db.execute(`
+      INSERT INTO payments
+      (name, amount, account_book_id)
+      VALUES (?, ?, ?)`,
+    [name, amount, account_book_id]);
+
+    if (!result.lastInsertId) {
+      throw ("Error while inserting new payment")
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+interface payments {
+  id: number;
+  name: string;
+  amount: number;
+  account_book_id: number;
+  date: string;
+}
+
+export async function getPayment(account_book_id: number) {
+  const db = await getDb();
+  try {
+    const result = await db.select<payments[]>(`
+      SELECT * FROM payments
+      WHERE account_book_id = ?`,
+      [account_book_id]);
+    return {
+      success: true,
+      payments: result,
+      error: null
+    }
+  } catch (err) {
+    console.error(err);
+    return {
+      success: false,
+      payments: null,
+      error: err
+    }
+  }
+}
