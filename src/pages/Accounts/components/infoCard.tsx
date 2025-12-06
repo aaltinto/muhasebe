@@ -1,3 +1,5 @@
+import { localeDate } from "../utils/localeDate";
+
 interface InfoCardProps {
     adress: string | null;
     phone: string | null;
@@ -22,7 +24,7 @@ export function InfoCard({adress, phone, email, last_action}: InfoCardProps) {
             </div>
             <div className="account-info-item">
               <span className="account-info-label">Son İşlem Tarihi</span>
-              <p className="account-info-value">{last_action ? last_action : '-'}</p>
+              <p className="account-info-value">{last_action ? localeDate(last_action) : '-'}</p>
             </div>
           </div>
     );

@@ -4,12 +4,14 @@ import close from "../../../assets/close.svg";
 import add from "../../../assets/add.svg";
 import saveButton from "../../../assets/save.svg";
 import payment from "../../../assets/payments.svg";
+import check from "../../../assets/check.svg";
+import edit from "../../../assets/edit.svg";
 import { ProductLine } from "./ProductLine";
 import PaymentLine from "./PaymentLine";
 import { saveAccountBook } from "../utils/saveAccountBook";
 import { accountBook, updateAccountBook } from "../../../db/accountBook";
 import { accountLine, deleteAccountLine } from "../../../db/productLines";
-import { payments } from "../../../db/paymentLines";
+import { deletePaymentLine, payments } from "../../../db/paymentLines";
 import calculateTotals from "../utils/calculateTotals";
 import { createAccountBook, loadAccountLines } from "../utils/loadPage";
 
@@ -31,6 +33,7 @@ export function AddAccountBook({
   const [accountBook, setAccountBook] = useState<accountBook | null>(null);
   const [saving, setSaving] = useState(false);
   const [isLineChanged, setLineChange] = useState(false);
+  const [isTitleOnEdit, setTitleOnEdit] = useState(false);
   const [clickedLineId, setClickedLineId] = useState<number | string | null>(
     `temp-0`
   );
@@ -65,32 +68,85 @@ export function AddAccountBook({
 
   if (!isOpen || !combinedLines || !accountBook) return null;
 
-  const handleProductLineDelete = async (id: number | string, debt: number) => {
+  const updatePaymentLines = (
+    combinedLines: (
+      | ({
+          kind: "product";
+        } & accountLine)
+      | ({
+          kind: "payment";
+        } & payments)
+    )[],
+    totalPaymentBalance: Record<
+      number | string,
+      { balance: number; old_debt: number }
+    >
+  ) => {
+    return combinedLines.map((line) => {
+    if (totalPaymentBalance[line.id] && line.kind === "payment") {
+      console.log("totalPaymentBalance", totalPaymentBalance[line.id]);
+      return {
+        ...line,
+        old_debt: String(totalPaymentBalance[line.id].old_debt)
+      };
+    }
+    return line;
+  });
+  };
+
+  const handleLineDelete = async (
+    lines:
+      | ({ kind: "product" } & accountLine)
+      | ({ kind: "payment" } & payments)
+  ) => {
     try {
-      if (typeof id === "number") {
-        const result = await deleteAccountLine(id);
-        if (!result.success) {
-          throw result.error ? result.error : result.message;
+      if (typeof lines.id === "number") {
+        if (lines.kind === "product") {
+          const result = await deleteAccountLine(lines.id);
+          if (!result.success) {
+            throw result.error ? result.error : result.message;
+          }
+          const updateResult = await updateAccountBook(
+            accountBook.id,
+            accountBook.debt -
+              parseFloat(lines.total_price) * parseFloat(lines.amount),
+            accountBook.balance,
+            accountBook.name
+          );
+          if (!updateResult.success) {
+            console.error("Account book couldn't updated");
+          }
+        } else if (lines.kind === "payment") {
+          const result = await deletePaymentLine(lines.id);
+          if (!result.success) {
+            throw result.error ? result.error : result.message;
+          }
+          const updateResult = await updateAccountBook(
+            accountBook.id,
+            accountBook.debt,
+            accountBook.balance + parseFloat(lines.payment),
+            accountBook.name
+          );
+          if (!updateResult.success) {
+            console.error("Account book couldn't updated");
+          }
         }
-        const updateResult = await updateAccountBook(
-          accountBook.id,
-          accountBook.debt - debt,
-          accountBook.balance,
-          accountBook.name
-        );
-        if (!updateResult.success) {
-          console.error("Account book couldn't updated");
-        }
-        console.log(`Line deleted: ${id}`);
-        return;
+        console.log(`Line deleted: ${lines.id}`);
       }
 
-      setCombinedLines(combinedLines.filter((line) => line.id !== id));
+      const deletedList = combinedLines.filter((line) => line.id !== lines.id);
+      const totals = calculateTotals(deletedList);
+      const updatedCombinedLines = updatePaymentLines(
+        deletedList,
+        totals.paymentBalance
+      );
+      setCombinedLines(updatedCombinedLines);
+      await saveAccountBook(updatedCombinedLines, null);
     } catch (err) {
       console.error(err);
     } finally {
-      if (typeof id === "number") {
-        loadAccountLines(accountBook.id);
+      if (typeof lines.id === "number") {
+        await loadAccountLines(accountBook.id);
       }
     }
   };
@@ -125,7 +181,7 @@ export function AddAccountBook({
   const handleAddNewPayment = () => {
     if (!accountBook) return;
     lineID.current++;
-    const newId = `temp-${lineID.current}`
+    const newId = `temp-${lineID.current}`;
     setClickedLineId(newId);
     for (const line of combinedLines) {
       if (typeof line.id === "number" || line.kind === "product") continue;
@@ -141,8 +197,8 @@ export function AddAccountBook({
       old_debt: String(totals.totalGross - totals.totalPayment),
       old_balance: String(accountBook.balance),
       account_book_id: accountBook.id,
-      date: new Date().toISOString()
-    }
+      date: new Date().toISOString(),
+    };
 
     setCombinedLines((prev) => [
       ...(prev ?? []),
@@ -207,16 +263,42 @@ export function AddAccountBook({
       >
         <div className="modal-header card-flex">
           <div className="btn-group card-flex">
-            <input
-              className="input"
-              onChange={(e) => {
-                setLineChange(true);
-                setAccountBookTitle(e.target.value);
-              }}
-              value={accountBookTitle ?? accountBook.name}
-              placeholder="Hesap defteri başlığı"
-              style={{ fontSize: "1.1rem", fontWeight: 600 }}
-            />
+            {isTitleOnEdit ? (
+              <div className="btn-group card-flex">
+                <input
+                  className="input"
+                  onChange={(e) => {
+                    setLineChange(true);
+                    setAccountBookTitle(e.target.value);
+                  }}
+                  value={accountBookTitle ?? accountBook.name}
+                  placeholder="Hesap defteri başlığı"
+                  style={{ fontSize: "1.1rem", fontWeight: 600 }}
+                />
+                <button
+                  className="btn btn-secondary btn-small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTitleOnEdit(false);
+                  }}
+                >
+                  <img src={check} alt="check" />
+                </button>
+              </div>
+            ) : (
+              <div className="btn-group card-flex">
+                <h2>{accountBookTitle ?? accountBook.name}</h2>
+                <button
+                  className="btn btn-secondary btn-small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTitleOnEdit(true);
+                  }}
+                >
+                  <img src={edit} alt="check" />
+                </button>
+              </div>
+            )}
           </div>
           <div className="btn-group">
             <button
@@ -275,12 +357,7 @@ export function AddAccountBook({
                   _tax={line.tax}
                   _date={line.date}
                   isClicked={clickedLineId === line.id}
-                  onDelete={() =>
-                    handleProductLineDelete(
-                      line.id,
-                      parseFloat(line.price) * parseFloat(line.amount)
-                    )
-                  }
+                  onDelete={() => handleLineDelete(line)}
                   onChange={(data) => {
                     handleProductLineChange(line.id, data);
                     setLineChange(true);
@@ -291,7 +368,7 @@ export function AddAccountBook({
                   isClicked={clickedLineId === line.id}
                   isDisplay={clickedLineId !== line.id}
                   _payment={line}
-                  onDelete={() => {}}
+                  onDelete={() => {handleLineDelete(line)}}
                   onChange={(data) => {
                     handlePaymentChange(line.id, data);
                     setLineChange(true);

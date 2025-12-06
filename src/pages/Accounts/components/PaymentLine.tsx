@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import deleteBtn from "../../../assets/delete.svg";
-import { payments } from "../../../db/accounts";
+import { payments } from "../../../db/paymentLines";
 
 interface ProductProps {
   _payment: payments;
@@ -60,7 +60,7 @@ export default function PaymentLine({
     return (
       <>
         <div className="bill-header-edit">
-          <strong style={{ fontSize: '1rem' }}>💳 Ödeme Düzenleme</strong>
+          <strong style={{ fontSize: '1rem' }}>Ödeme Düzenleme</strong>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', textAlign: 'center', fontWeight: 600 }}>
             <p style={{ margin: 0 }}>Eski Borç</p>
             <p style={{ margin: 0 }}>Eski Bakiye</p>
@@ -95,10 +95,7 @@ export default function PaymentLine({
             />
           </div>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onDelete) onDelete();
-            }}
+            onClick={onDelete}
             className="btn btn-delete btn-small"
           >
             <img src={deleteBtn} alt="Delete" />

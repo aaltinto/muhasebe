@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAccounts, accounts } from "../../db/accounts";
 import { account_type } from "../../db/accounts";
+import { localeDate } from "./utils/localeDate";
 import AddAccountModal from "./components/AddAccountModal";
 
 export interface AccountProps {
@@ -40,7 +41,7 @@ function GetList({ accountType }: { accountType: account_type; }) {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!accounts) return null;
-
+  
   
   return (
     <div className="product-list">
@@ -55,7 +56,7 @@ function GetList({ accountType }: { accountType: account_type; }) {
                     <div className="product-info">
                       <div className="product-name"> {account.name} </div>
                       <div className="account-date">
-                        Son işlem: {account.last_action}
+                        Son işlem: {localeDate(account.last_action)}
                       </div>
                     </div>
                     <div className="product-details">

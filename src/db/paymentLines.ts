@@ -10,52 +10,81 @@ export interface payments {
   date: string;
 }
 
-export async function savePayment (name: string | null, payment: number, old_debt: number, old_balance: number, date: string, account_book_id: number) {
+export async function savePayment(
+  name: string | null,
+  payment: number,
+  old_debt: number,
+  old_balance: number,
+  date: string,
+  account_book_id: number,
+  id: number | null
+) {
   const db = await getDb();
   try {
-    const result = await db.execute(`
+    if (id) {
+      const result = await db.execute(
+        `
+      UPDATE payments
+      SET name = ?, payment = ?, old_debt = ?, old_balance = ?, account_book_id = ?, date = ?`,
+        [name, payment, old_debt, old_balance, account_book_id, date]
+      );
+
+      if (!result.lastInsertId) {
+        throw "Error while inserting new payment";
+      }
+      return {
+        success: true,
+        lastInsertedId: result.lastInsertId,
+        error: null,
+      };
+    }
+    const result = await db.execute(
+      `
       INSERT INTO payments
       (name, payment, old_debt, old_balance, account_book_id, date)
       VALUES (?, ?, ?, ?, ?, ?)`,
-    [name, payment, old_debt, old_balance, account_book_id, date]);
+      [name, payment, old_debt, old_balance, account_book_id, date]
+    );
 
     if (!result.lastInsertId) {
-      throw ("Error while inserting new payment")
+      throw "Error while inserting new payment";
     }
     return {
       success: true,
       lastInsertedId: result.lastInsertId,
-      error: null
-    }
+      error: null,
+    };
   } catch (err) {
     console.error(err);
     return {
       success: false,
       lastInsertedId: null,
-      error: err
-    }
+      error: err,
+    };
   }
 }
 
 export async function getPayment(account_book_id: number) {
   const db = await getDb();
   try {
-    const result = await db.select<payments[]>(`
+    const result = await db.select<payments[]>(
+      `
       SELECT * FROM payments
       WHERE account_book_id = ?`,
-      [account_book_id]);
+      [account_book_id]
+    );
     return {
       success: true,
       payments: result,
-      error: null
-    }
+      error: null,
+    };
   } catch (err) {
     console.error(err);
     return {
       success: false,
       payments: null,
-      error: err
-    }
+      error: err,
+    };
   }
 }
 
@@ -85,9 +114,7 @@ export async function getPaymentsLinesById(id: number) {
 export async function deletePaymentLine(id: number) {
   const db = await getDb();
   try {
-    const result = await db.execute(`DELETE FROM payments WHERE id = ?`, [
-      id,
-    ]);
+    const result = await db.execute(`DELETE FROM payments WHERE id = ?`, [id]);
 
     const success = result.rowsAffected > 0;
 

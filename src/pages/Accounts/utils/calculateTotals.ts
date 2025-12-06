@@ -10,6 +10,7 @@ export default function calculateTotals(
   >
 ) {
     let totalnet_price = 0, totalDiscount = 0, totalTax = 0, totalGross = 0, totalPayment = 0;
+    let paymentBalance: Record < number | string, { balance: number, old_debt: number}> = {};
     for (const lines of combinedLines) {
         if (lines.kind === "product") {
             const net_price = parseFloat(lines.net_price) || 0;
@@ -26,6 +27,10 @@ export default function calculateTotals(
         } else if (lines.kind === "payment") {
             const payment = parseFloat(lines.payment) || 0;
             totalPayment += payment;
+            paymentBalance[lines.id] = {
+                old_debt: totalGross,
+                balance:totalGross - payment
+            };
         }
 
     }
@@ -35,6 +40,7 @@ export default function calculateTotals(
         totalDiscount,
         totalTax,
         totalGross,
-        totalPayment
+        totalPayment,
+        paymentBalance
     }
 }

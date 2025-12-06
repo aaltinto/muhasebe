@@ -92,7 +92,8 @@ async function savePaymentLine(line: { kind: "payment" } & payments) {
     n_old_debt,
     n_old_balance,
     line.date,
-    line.account_book_id
+    line.account_book_id,
+    typeof line.id === "number" ? line.id : null
   );
   if (!result.success) {
     throw result.error;

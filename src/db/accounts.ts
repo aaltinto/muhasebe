@@ -9,7 +9,7 @@ export interface accounts {
   debt: number;
   balance: number;
   created_at?: string;
-  last_action?: string;
+  last_action: string;
   account_type: string;
 }
 
@@ -129,7 +129,7 @@ export async function getAccounts(accountType: account_type) {
     return result.length > 0 ? result : null;
   } catch (error) {
     console.error("An error occurred:", error);
-    throw error;
+    return null
   }
 }
 
