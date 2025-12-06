@@ -1,167 +1,334 @@
 .gross-bill {
     display: flex;
     flex-direction: column;
-    width: 250px;
+    min-width: 220px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-dark);
 }
 
 .gross-bill-items {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding-bottom: 1rem;
+    gap: 0.35rem;
 }
 
 .gross-bill-items span {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: #6b7280;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #94a3b8;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--border-dark);
 }
 
 .gross-bill-items span::after {
     content: attr(data-value);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--color-dark);
+    font-size: 0.85rem;
 }
 
 .gross-bill-items p {
     display: flex;
     justify-content: space-between;
-    font-size: 1.25rem;
-    font-weight: 600;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 700;
     color: var(--color-dark);
-    margin: 0.5rem 0 0 0;
-    padding-top: 0.75rem;
+    margin: 0.35rem 0 0 0;
+    padding-top: 0.5rem;
+    border-top: 2px solid var(--accent-dark);
 }
 
 .gross-bill-items p::after {
     content: attr(data-value);
     color: #3b82f6;
+    font-size: 1.15rem;
 }
 
+/* Bill Header */
 .bill-header {
-    border-bottom: 1px solid var(--border-dark);
-    margin-bottom: 0rem;
-    margin-top: 1rem;
-    padding-bottom: 0rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    display: flex;
-    justify-content: space-between;
+    background-color: rgba(99, 102, 241, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding: 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 1rem;
     align-items: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+    border: 1px solid var(--border-dark);
+    border-bottom: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .bill-header-edit {
-    margin-bottom: 0rem;
-    margin-top: 1rem;
-    padding-bottom: 0rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    display: flex;
-    justify-content: space-between;
+    background-color: rgba(245, 158, 11, 0.08);
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
     align-items: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-bottom: none;
 }
 
-.bill-items {
+.bill-header-edit strong {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin: 0.5rem 0 0 0;
-    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Bill Items */
+.bill-items {
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-left: 1px solid var(--border-dark);
+    border-right: 1px solid var(--border-dark);
     border-bottom: 1px solid var(--border-dark);
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.card-content.big {
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 0;
+}
+
+.bill-items:hover {
+    background-color: rgba(99, 102, 241, 0.03);
+}
+
+.bill-items:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+.bill-items.error {
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    margin-bottom: 3rem;
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+.error-message {
+    position: absolute;
+    bottom: -2.5rem;
+    right: 1rem;
+    background-color: #ef4444;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.error-message::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    right: 1rem;
+    border: 6px solid transparent;
+    border-bottom-color: #ef4444;
 }
 
 .bill-items p {
-    font-size: medium;
+    font-size: 0.95rem;
     margin: 0;
-    max-width: 400px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: normal;
 }
 
+.bill-items p:first-child {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Bill Prices */
 .bill-prices {
-    display: flex;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    align-items: center;
 }
 
 .bill-prices.title {
-    display: flex;
-    gap: 2.5rem;
-    padding-right: 4rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    text-align: center;
 }
 
 .bill-prices p {
     margin: 0;
     text-align: center;
-    min-width: 60px;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
+
 .bill-prices.prices {
-    margin: 0;
-    text-align: center;
-    gap: 2.5rem;
+    gap: 1.25rem;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.bill-prices.pay {
+    grid-template-columns: auto auto 1fr auto;
+    gap: 1rem;
+}
+
+/* Payment specific styling */
+.bill-items.payment-line {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+    border-left: 3px solid #10b981;
+}
+
+.bill-items.payment-line p:first-child {
+    color: #10b981;
+    font-weight: 600;
 }
 
 /* Account Books List */
 .account-books-list {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .account-book-item {
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
+    border-radius: 8px;
 }
 
 .account-book-item:hover {
-  transform: translateX(4px);
-  border-color: var(--accent-dark);
+    transform: translateX(4px);
+    border-color: var(--accent-dark);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .account-book-info {
-  cursor: pointer;
-  flex: 1;
+    cursor: pointer;
+    flex: 1;
 }
 
 .account-book-info .card-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  border: none;
-  padding: 0;
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    border: none;
+    padding: 0;
 }
 
 .account-book-details {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.9rem;
-  color: rgba(241, 245, 249, 0.7);
+    display: flex;
+    gap: 2rem;
+    font-size: 0.95rem;
+    color: rgba(241, 245, 249, 0.7);
 }
 
 .book-debt {
-  color: #f59e0b;
+    color: #f59e0b;
+    font-weight: 600;
 }
 
 .book-balance {
-  color: #10b981;
+    color: #10b981;
+    font-weight: 600;
 }
 
 .empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: rgba(241, 245, 249, 0.5);
+    text-align: center;
+    padding: 3rem 2rem;
+    color: rgba(241, 245, 249, 0.4);
+    font-size: 1.1rem;
 }
 
-/* Light theme */
+/* Light theme adjustments */
+body.light .gross-bill {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 1px solid var(--border-light);
+}
+
+body.light .gross-bill-items span {
+    color: #64748b;
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.light .gross-bill-items span::after {
+    color: var(--color-light);
+}
+
+body.light .gross-bill-items p::after {
+    color: var(--accent-light);
+}
+
+body.light .bill-header {
+    background-color: rgba(79, 70, 229, 0.95);
+    backdrop-filter: blur(8px);
+    color: white;
+    border: 1px solid var(--border-light);
+    border-bottom: none;
+}
+
+body.light .bill-header-edit {
+    background-color: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-bottom: none;
+}
+
+body.light .bill-header-edit strong {
+    color: #f59e0b;
+}
+
+body.light .bill-items {
+    border-color: var(--border-light);
+}
+
+body.light .bill-items:hover {
+    background-color: rgba(79, 70, 229, 0.03);
+}
+
+body.light .bill-items p:first-child {
+    color: #64748b;
+}
+
+body.light .bill-items.payment-line {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+}
+
 body.light .account-book-item:hover {
-  border-color: var(--accent-light);
+    border-color: var(--accent-light);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
 body.light .account-book-details {
-  color: rgba(71, 85, 105, 0.7);
+    color: rgba(71, 85, 105, 0.7);
 }
 
 body.light .empty-state {
-  color: rgba(71, 85, 105, 0.5);
+    color: rgba(71, 85, 105, 0.4);
 }

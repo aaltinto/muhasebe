@@ -4,34 +4,29 @@ import {
   getAccountById,
   deleteAccount,
   account_type,
-  getAccountBooks,
-  accountBook,
-  deleteAccountBook,
-} from "../db/accounts";
-import AddAccountModal from "../components/AddAccountModal";
-import { AddAccountBook } from "../components/AddAccountBook";
+} from "../../db/accounts";
+import { getAccountBooks, accountBook, deleteAccountBook } from "../../db/accountBook";
+import AddAccountModal from "./components/AddAccountModal";
+import { AddAccountBook } from "./components/AddAccountBook";
 import { useEffect, useState } from "react";
-import { InfoCard } from "../components/infoCard";
-import "../style/Account.css";
-import deleteIcon from "../assets/delete.svg";
-import arrow_back from "../assets/arrow_back.svg";
-import edit from "../assets/edit.svg";
-import add from "../assets/add.svg";
-import payment from "../assets/payments.svg"
-import AddPayment from "../components/AddPayment";
+import { InfoCard } from "./components/infoCard";
+import "../../style/Account.css";
+import deleteIcon from "../../assets/delete.svg";
+import arrow_back from "../../assets/arrow_back.svg";
+import edit from "../../assets/edit.svg";
+import add from "../../assets/add.svg";
 
 export default function AccountDetail() {
   const [accounts, setAccounts] = useState<accounts | null>(null);
   const [accountBooks, setAccountBooks] = useState<accountBook[] | null>(null);
   const [selectedAccountBooks, setSelectedAccountBooks] =
     useState<accountBook | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
-  const [isPaymentOpen, setPaymentOpen] = useState(false);
+  // const [isPaymentOpen, setPaymentOpen] = useState(false);
 
   const navigate = useNavigate();
   const { type, id } = useParams<{ type: account_type; id: string }>();
@@ -211,17 +206,6 @@ export default function AccountDetail() {
                     </div>
                     <div className="btn-group">
                       <button
-                        className="btn btn-secondary btn-small"
-                        title="Ödeme Ekle"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedAccountBooks(book);
-                          setPaymentOpen(true);
-                        }}
-                      >
-                        <img src={payment} alt="Payment" />
-                      </button>
-                      <button
                         className="btn btn-delete btn-small"
                         title="Hesap defterini sil"
                         onClick={(e) => {
@@ -257,14 +241,6 @@ export default function AccountDetail() {
         }}
         userId={accounts.id}
         accountBookData={selectedAccountBooks}
-      />
-      <AddPayment
-      isOpen={isPaymentOpen}
-      onClose={() => {
-        setPaymentOpen(false);
-        setSelectedAccountBooks(null);
-      }}
-      accountBook={selectedAccountBooks}
       />
 
       <AddAccountModal

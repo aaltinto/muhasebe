@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { setUser, accounts, account_type, updateUser } from "../db/accounts";
-import "../style/AddAccountModal.css";
+import { setUser, accounts, account_type, updateUser } from "../../../db/accounts";
+import "../../../style/AddAccountModal.css";
 
 interface AddAccountModalProps {
   isOpen: boolean;

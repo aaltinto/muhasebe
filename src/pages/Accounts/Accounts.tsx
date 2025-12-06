@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getAccounts, accounts } from "../db/accounts";
-import { account_type } from "../db/accounts";
-import AddAccountModal from "../components/AddAccountModal";
+import { getAccounts, accounts } from "../../db/accounts";
+import { account_type } from "../../db/accounts";
+import AddAccountModal from "./components/AddAccountModal";
 
 export interface AccountProps {
   id: number;

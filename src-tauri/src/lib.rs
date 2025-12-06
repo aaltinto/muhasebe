@@ -53,7 +53,7 @@ pub fn run() {
                 tax INTEGER NOT NULL DEFAULT 20,
                 discount INTEGER NOT NULL DEFAULT 0,
                 total_price INTEGER NOT NULL,
-                date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                date TEXT NOT NULL,
                 FOREIGN KEY (account_book_id) REFERENCES account_book(id) ON DELETE CASCADE
             )",
             kind: MigrationKind::Up,  
@@ -80,9 +80,12 @@ pub fn run() {
             sql: "CREATE TABLE IF NOT EXISTS payments (  
                 id INTEGER PRIMARY KEY AUTOINCREMENT,  
                 name TEXT DEFAULT NULL,
-                amount NUMBER NOT NULL,
+                payment NUMBER NOT NULL,
+                old_debt NUMBER NOT NULL,
+                old_balance NUMBER NOT NULL,
                 account_book_id INTEGER NOT NULL,
-                date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                date TEXT NOT NULL,
+                FOREIGN KEY (account_book_id) REFERENCES account_book(id) ON DELETE CASCADE
             )",
             kind: MigrationKind::Up,  
         }

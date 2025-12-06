@@ -1,4 +1,4 @@
-import LineChartIncome from "../components/LineChart";
+import LineChartIncome from "../../components/LineChart";
 
 export default function AccountsSum() {
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import deleteBtn from "../assets/delete.svg";
+import deleteBtn from "../../../assets/delete.svg";
 
 interface ProductProps {
   _name: string;
@@ -7,6 +7,7 @@ interface ProductProps {
   _net_price: string;
   _discount: string;
   _tax: string;
+  _date: string;
   _price: string;
   isClicked: boolean;
   onDelete: () => void;
@@ -26,6 +27,7 @@ export function ProductLine({
   _net_price,
   _discount,
   _tax,
+  _date,
   _price,
   isClicked,
   onDelete,
@@ -125,16 +127,16 @@ export function ProductLine({
     return (
       <>
         <div className="bill-header-edit">
-          <strong>Ürün Adı</strong>
-          <div className="bill-prices title">
-            <p>Adet</p>
-            <p>Net Fiyat</p>
-            <p>İskonto</p>
-            <p>KDV (%)</p>
-            <p>{"Toplam"}</p>
+          <strong style={{ fontSize: '1rem' }}>Ürün Düzenleme</strong>
+          <div style={{ marginRight: '3.5rem', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.5rem', textAlign: 'center', fontWeight: 600 }}>
+            <p style={{ margin: 0 }}>Adet</p>
+            <p style={{ margin: 0 }}>Net Fiyat</p>
+            <p style={{ margin: 0 }}>İskonto</p>
+            <p style={{ margin: 0 }}>KDV (%)</p>
+            <p style={{ margin: 0 }}>Brüt Fiyat</p>
           </div>
         </div>
-        <div className="bill-items">
+        <div className="bill-items" style={{ gridTemplateColumns: '1fr auto auto' }}>
           <input
             ref={nameInputRef}
             className="input input-bill-title"
@@ -142,9 +144,10 @@ export function ProductLine({
             value={name}
             onChange={handleNameChange}
             type="text"
-            placeholder="Ürün adı"
+            placeholder="Ürün adı giriniz"
+            style={{ fontWeight: 500 }}
           />
-          <div className="bill-prices">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', alignItems: 'center' }}>
             <input
               id="amount"
               className="input input-bill"
@@ -167,7 +170,7 @@ export function ProductLine({
               type="number"
               value={net_price}
               onChange={handleNetChange}
-              placeholder="0"
+              placeholder="0.00"
             />
             <input
               id="discount"
@@ -179,7 +182,7 @@ export function ProductLine({
               type="number"
               value={discount}
               onChange={handleDiscountChange}
-              placeholder="0"
+              placeholder="0.00"
             />
             <input
               id="tax"
@@ -191,7 +194,7 @@ export function ProductLine({
               type="number"
               value={tax}
               onChange={handleTaxChange}
-              placeholder="0"
+              placeholder="20"
             />
             <input
               id="price"
@@ -203,7 +206,7 @@ export function ProductLine({
               type="number"
               value={price}
               onChange={handleGrossChange}
-              placeholder="0"
+              placeholder="0.00"
             />
           </div>
           <button onClick={onDelete} className="btn btn-delete btn-small">
@@ -215,29 +218,28 @@ export function ProductLine({
   }
 
   const calcTotal = (price: string, amount: string) => {
-    if (!price || !amount) return "0";
+    if (!price || !amount) return "0.00";
     const grossFloat = parseFloat(price);
     const amountFloat = parseFloat(amount);
-    return String(grossFloat * amountFloat);
+    return (grossFloat * amountFloat).toFixed(2);
   };
 
   return (
     <div className="bill-items">
-      <p>{name || "-"}</p>
+      <p>{new Date(_date).toLocaleString('tr-TR', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })}</p>
+      <p style={{ fontWeight: 600 }}>{name || "Ürün adı yok"}</p>
       <div className="bill-prices prices">
-        <p>{amount || "0"}</p>
-        <p>{net_price || "0"}</p>
-        <p>{price || "0"}</p>
-        <p>{calcTotal(price, amount)}</p>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="btn btn-delete btn-small"
-        >
-          <img src={deleteBtn} alt="Delete" />
-        </button>
+        <p>{amount || "0"}x</p>
+        <p>₺{parseFloat(net_price || "0").toFixed(2)}</p>
+        <p>₺{parseFloat(price || "0").toFixed(2)}</p>
+        <p style={{ fontWeight: 700, color: '#3b82f6' }}>₺{calcTotal(price, amount)}</p>
       </div>
     </div>
   );
