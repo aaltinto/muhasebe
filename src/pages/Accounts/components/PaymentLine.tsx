@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import deleteBtn from "../../../assets/delete.svg";
+import loadSpin from "../../../assets/progress.svg";
 import { payments } from "../../../db/paymentLines";
 
 interface ProductProps {
   _payment: payments;
   isDisplay: boolean;
+  isDeleting: boolean;
   isClicked?: boolean;
   onDelete?: () => void;
   onChange?: (data: { name?: string; payment?: string }) => void;
@@ -14,6 +16,7 @@ interface ProductProps {
 export default function PaymentLine({
   _payment,
   isDisplay,
+  isDeleting,
   isClicked,
   onDelete,
   onChange,
@@ -22,7 +25,6 @@ export default function PaymentLine({
   const [name, setName] = useState<string>( _payment.name);
   const [payment, setPayment] = useState(_payment.payment);
   const [oldDebt, setOldDebt] = useState(_payment.old_debt);
-  const [oldBalance, setOldBalance] = useState(_payment.old_balance);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const localeDate = new Date(_payment.date).toLocaleString('tr-TR', {
         year: 'numeric',
@@ -69,6 +71,7 @@ export default function PaymentLine({
         </div>
         <div className={`bill-items ${error ? 'error' : ''}`} style={{ gridTemplateColumns: '1fr auto auto' }}>
           <input
+          ref={nameInputRef}
             id="name"
             type="text"
             value={name}
@@ -81,9 +84,6 @@ export default function PaymentLine({
             <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.1)', borderRadius: '6px' }}>
               <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600 }}>₺{oldDebt}</p>
             </div>
-            <div style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.1)', borderRadius: '6px' }}>
-              <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600 }}>₺{oldBalance}</p>
-            </div>
             <input
               id="payment"
               type="number"
@@ -92,13 +92,22 @@ export default function PaymentLine({
               onChange={handlePaymentChange}
               value={payment}
               placeholder="0.00"
+              onFocus={() => {
+                nameInputRef.current = null;
+              }}
             />
           </div>
           <button
             onClick={onDelete}
             className="btn btn-delete btn-small"
           >
-            <img src={deleteBtn} alt="Delete" />
+            {isDeleting ?
+                  <img src={loadSpin} alt="Loading" className="spin-animation" />
+                :
+                <>
+                  <img src={deleteBtn} alt="Delete" />
+                </>
+                }
           </button>
         </div>
       </>
@@ -124,26 +133,4 @@ export default function PaymentLine({
       </div>
     );
   }
-
-  return (
-    <div className={`bill-items payment-line ${error != null ? 'error' : ''}`}>
-      <p>{localeDate}</p>
-      <p style={{ fontWeight: 600 }}>{name || 'Ödeme'}</p>
-      <div className="bill-prices pay card-flex">
-        <p>₺{oldDebt}</p>
-        <p>₺{payment}</p>
-        <p>₺{oldBalance}</p>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onDelete) onDelete();
-          }}
-          className="btn btn-delete btn-small"
-        >
-          <img src={deleteBtn} alt="Delete" />
-        </button>
-      </div>
-      {error && <span className="error-message">{error}</span>}
-    </div>
-  );
 }

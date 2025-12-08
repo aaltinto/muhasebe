@@ -4,6 +4,8 @@ import { getAccounts, accounts } from "../../db/accounts";
 import { account_type } from "../../db/accounts";
 import { localeDate } from "./utils/localeDate";
 import AddAccountModal from "./components/AddAccountModal";
+import { sleep } from "./utils/sleep";
+import loadSpin from "../../assets/progress.svg"
 
 export interface AccountProps {
   id: number;
@@ -23,6 +25,7 @@ function GetList({ accountType }: { accountType: account_type; }) {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
+      // await sleep(2000);
       const result = await getAccounts(accountType);
       setAccounts(result);
       setError(null);
@@ -38,14 +41,20 @@ function GetList({ accountType }: { accountType: account_type; }) {
     fetchAccounts();
   }, [accountType]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (<div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+          <img src={loadSpin} alt="Loading" className="spin-animation" style={{ width: "48px", height: "48px" }} />
+        </div>);
   if (error) return <div>Error: {error}</div>;
   if (!accounts) return null;
   
   
   return (
     <div className="product-list">
-              {accounts.map((account) => (
+              {accounts.length > 0 ? (accounts.map((account) => (
                 <Link
                   key={account.id}
                   to={`/accounts/${accountType}s/${account.id}`}
@@ -69,7 +78,12 @@ function GetList({ accountType }: { accountType: account_type; }) {
                     </div>
                   </div>
                 </Link>
-              ))}
+              ))
+            ) : (
+            <div className="empty-state">
+                <p>Henüz hesap eklenmemiş</p>
+              </div>
+              )}
             </div>
   );
 }

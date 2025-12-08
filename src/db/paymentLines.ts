@@ -5,7 +5,6 @@ export interface payments {
   name: string;
   payment: string;
   old_debt: string;
-  old_balance: string;
   account_book_id: number;
   date: string;
 }
@@ -14,7 +13,6 @@ export async function savePayment(
   name: string | null,
   payment: number,
   old_debt: number,
-  old_balance: number,
   date: string,
   account_book_id: number,
   id: number | null
@@ -25,8 +23,8 @@ export async function savePayment(
       const result = await db.execute(
         `
       UPDATE payments
-      SET name = ?, payment = ?, old_debt = ?, old_balance = ?, account_book_id = ?, date = ?`,
-        [name, payment, old_debt, old_balance, account_book_id, date]
+      SET name = ?, payment = ?, old_debt = ?, account_book_id = ?, date = ?`,
+        [name, payment, old_debt, account_book_id, date]
       );
 
       if (!result.lastInsertId) {
@@ -41,9 +39,9 @@ export async function savePayment(
     const result = await db.execute(
       `
       INSERT INTO payments
-      (name, payment, old_debt, old_balance, account_book_id, date)
+      (name, payment, old_debt, account_book_id, date)
       VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, payment, old_debt, old_balance, account_book_id, date]
+      [name, payment, old_debt, account_book_id, date]
     );
 
     if (!result.lastInsertId) {

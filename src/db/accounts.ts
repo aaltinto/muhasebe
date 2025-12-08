@@ -126,10 +126,10 @@ export async function getAccounts(accountType: account_type) {
     } else {
       result = await db.select<accounts[]>("SELECT * FROM accounts");
     }
-    return result.length > 0 ? result : null;
+    return result.length > 0 ? result : [];
   } catch (error) {
     console.error("An error occurred:", error);
-    return null
+    return []
   }
 }
 

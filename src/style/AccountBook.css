@@ -332,3 +332,16 @@ body.light .account-book-details {
 body.light .empty-state {
     color: rgba(71, 85, 105, 0.4);
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-animation {
+  animation: spin 1s linear infinite;
+}

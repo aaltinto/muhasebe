@@ -82,7 +82,6 @@ pub fn run() {
                 name TEXT DEFAULT NULL,
                 payment NUMBER NOT NULL,
                 old_debt NUMBER NOT NULL,
-                old_balance NUMBER NOT NULL,
                 account_book_id INTEGER NOT NULL,
                 date TEXT NOT NULL,
                 FOREIGN KEY (account_book_id) REFERENCES account_book(id) ON DELETE CASCADE

@@ -43,7 +43,6 @@ function isUpdated(
     oldLine.kind === "payment" &&
     (newLine.name !== oldLine.name ||
       newLine.payment !== oldLine.payment ||
-      newLine.old_balance !== oldLine.old_balance ||
       newLine.old_debt !== oldLine.old_debt ||
       newLine.account_book_id !== oldLine.account_book_id)
   ) {
@@ -63,7 +62,7 @@ async function saveAccountLine(line: accountLine) {
   if (!amount || !net_price || !tax || !price || !line_total) {
     return 0;
   }
-
+  console.log("saveAccountLine: discount", discount);
   const result = await createAccountLine(
     line.name,
     line.account_book_id,
@@ -83,14 +82,12 @@ async function saveAccountLine(line: accountLine) {
 }
 
 async function savePaymentLine(line: { kind: "payment" } & payments) {
-  const n_old_balance = parseFloat(line.old_balance);
   const n_old_debt = parseFloat(line.old_debt);
   const n_payment = parseFloat(line.payment);
   const result = await savePayment(
     line.name,
     n_payment,
     n_old_debt,
-    n_old_balance,
     line.date,
     line.account_book_id,
     typeof line.id === "number" ? line.id : null
@@ -142,6 +139,7 @@ export async function saveAccountBook(
           continue;
         }
       }
+      console.log("saveAccountBook",line.discount)
       await saveAccountLine(line);
     }
     const totals = calculateTotals(combinedLines);

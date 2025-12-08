@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import deleteBtn from "../../../assets/delete.svg";
+import loadSpin from "../../../assets/progress.svg";
 
 interface ProductProps {
   _name: string;
@@ -11,6 +12,7 @@ interface ProductProps {
   _price: string;
   isClicked: boolean;
   onDelete: () => void;
+  isDeleting: boolean;
   onChange: (data: {
     name?: string;
     amount?: string;
@@ -30,6 +32,7 @@ export function ProductLine({
   _date,
   _price,
   isClicked,
+  isDeleting,
   onDelete,
   onChange,
 }: ProductProps) {
@@ -56,7 +59,7 @@ export function ProductLine({
     const taxRateNum = parseFloat(tax) || 0;
 
     const netAfterDiscount = netNum - discountNum;
-    const grossValue = netAfterDiscount * (1 + taxRateNum / 100);
+    const grossValue = (netAfterDiscount / 100 * taxRateNum) + netAfterDiscount;
     const newGross = grossValue.toFixed(2);
     setGross(newGross);
 
@@ -72,7 +75,7 @@ export function ProductLine({
     const taxRateNum = parseFloat(tax) || 0;
 
     const netAfterDiscount = netNum - discountNum;
-    const grossValue = netAfterDiscount * (1 + taxRateNum / 100);
+    const grossValue = (netAfterDiscount / 100 * taxRateNum) + netAfterDiscount;
     const newGross = grossValue.toFixed(2);
     setGross(newGross);
 
@@ -88,7 +91,7 @@ export function ProductLine({
     const taxRateNum = parseFloat(newTax) || 0;
 
     const netAfterDiscount = netNum - discountNum;
-    const grossValue = netAfterDiscount * (1 + taxRateNum / 100);
+    const grossValue = (netAfterDiscount / 100 * taxRateNum) + netAfterDiscount;
     const newGross = grossValue.toFixed(2);
     setGross(newGross);
 
@@ -101,13 +104,13 @@ export function ProductLine({
 
     const grossNum = parseFloat(newGross) || 0;
     const taxRateNum = parseFloat(tax) || 0;
+    const discountNum = parseFloat(discount) || 0;
 
-    const netValue = grossNum / (1 + taxRateNum / 100);
-    const newNetPrice = netValue.toFixed(2);
+    const netValue = grossNum - (grossNum / 100 * taxRateNum);
+    const newNetPrice = (netValue + discountNum).toFixed(2);
     setNetPrice(newNetPrice);
-    setDiscount("0");
 
-    onChange({ price: newGross, net_price: newNetPrice, discount: "0" });
+    onChange({ price: newGross, net_price: newNetPrice });
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,7 +213,13 @@ export function ProductLine({
             />
           </div>
           <button onClick={onDelete} className="btn btn-delete btn-small">
-            <img src={deleteBtn} alt="Delete" />
+          {isDeleting ?
+                  <img src={loadSpin} alt="Loading" className="spin-animation" />
+                :
+                <>
+                  <img src={deleteBtn} alt="Delete" />
+                </>
+                }
           </button>
         </div>
       </>

@@ -6,14 +6,15 @@ import saveButton from "../../../assets/save.svg";
 import payment from "../../../assets/payments.svg";
 import check from "../../../assets/check.svg";
 import edit from "../../../assets/edit.svg";
-import { ProductLine } from "./ProductLine";
-import PaymentLine from "./PaymentLine";
+import loadSpin from "../../../assets/progress.svg";
 import { saveAccountBook } from "../utils/saveAccountBook";
-import { accountBook, updateAccountBook } from "../../../db/accountBook";
-import { accountLine, deleteAccountLine } from "../../../db/productLines";
-import { deletePaymentLine, payments } from "../../../db/paymentLines";
+import { accountBook } from "../../../db/accountBook";
+import { accountLine } from "../../../db/productLines";
+import { payments } from "../../../db/paymentLines";
 import calculateTotals from "../utils/calculateTotals";
 import { createAccountBook, loadAccountLines } from "../utils/loadPage";
+import GetAccountBookList from "./GetAccountBookList";
+import { AccountBookListRef } from "./GetAccountBookList";
 
 interface AddAccountBookProps {
   isOpen: boolean;
@@ -28,18 +29,13 @@ export function AddAccountBook({
   accountBookData,
   userId,
 }: AddAccountBookProps) {
-  const lineID = useRef(1);
+  const listRef = useRef<AccountBookListRef | null>(null);
   const [accountBookTitle, setAccountBookTitle] = useState<string | null>(null);
   const [accountBook, setAccountBook] = useState<accountBook | null>(null);
   const [saving, setSaving] = useState(false);
   const [isLineChanged, setLineChange] = useState(false);
   const [isTitleOnEdit, setTitleOnEdit] = useState(false);
-  const [clickedLineId, setClickedLineId] = useState<number | string | null>(
-    `temp-0`
-  );
-  const [errors, setErrors] = useState<Record<string | number, string | null>>(
-    {}
-  );
+
   const [combinedLines, setCombinedLines] = useState<Array<
     | ({ kind: "product" } & accountLine)
     | ({
@@ -50,204 +46,33 @@ export function AddAccountBook({
   useEffect(() => {
     const init = async () => {
       if (!isOpen) return;
-      let book = accountBookData;
+      try {
+        let book = accountBookData;
 
-      if (!book) {
-        book = await createAccountBook(userId);
-      }
-      if (book) {
-        setAccountBook(book);
-        const mergedLines = await loadAccountLines(book.id);
-        setCombinedLines(mergedLines);
+        if (!book) {
+          book = await createAccountBook(userId);
+        }
+        if (book) {
+          setAccountBook(book);
+          const mergedLines = await loadAccountLines(book.id);
+          // await sleep(1000);
+          setCombinedLines(mergedLines);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
       }
     };
 
     init();
+
     if (accountBook) setAccountBookTitle(accountBook.name);
   }, [userId, isOpen, accountBookData]);
 
-  if (!isOpen || !combinedLines || !accountBook) return null;
+  if (!isOpen) return null;
 
-  const updatePaymentLines = (
-    combinedLines: (
-      | ({
-          kind: "product";
-        } & accountLine)
-      | ({
-          kind: "payment";
-        } & payments)
-    )[],
-    totalPaymentBalance: Record<
-      number | string,
-      { balance: number; old_debt: number }
-    >
-  ) => {
-    return combinedLines.map((line) => {
-    if (totalPaymentBalance[line.id] && line.kind === "payment") {
-      console.log("totalPaymentBalance", totalPaymentBalance[line.id]);
-      return {
-        ...line,
-        old_debt: String(totalPaymentBalance[line.id].old_debt)
-      };
-    }
-    return line;
-  });
-  };
+  if (!combinedLines || !accountBook) return null;
 
-  const handleLineDelete = async (
-    lines:
-      | ({ kind: "product" } & accountLine)
-      | ({ kind: "payment" } & payments)
-  ) => {
-    try {
-      if (typeof lines.id === "number") {
-        if (lines.kind === "product") {
-          const result = await deleteAccountLine(lines.id);
-          if (!result.success) {
-            throw result.error ? result.error : result.message;
-          }
-          const updateResult = await updateAccountBook(
-            accountBook.id,
-            accountBook.debt -
-              parseFloat(lines.total_price) * parseFloat(lines.amount),
-            accountBook.balance,
-            accountBook.name
-          );
-          if (!updateResult.success) {
-            console.error("Account book couldn't updated");
-          }
-        } else if (lines.kind === "payment") {
-          const result = await deletePaymentLine(lines.id);
-          if (!result.success) {
-            throw result.error ? result.error : result.message;
-          }
-          const updateResult = await updateAccountBook(
-            accountBook.id,
-            accountBook.debt,
-            accountBook.balance + parseFloat(lines.payment),
-            accountBook.name
-          );
-          if (!updateResult.success) {
-            console.error("Account book couldn't updated");
-          }
-        }
-        console.log(`Line deleted: ${lines.id}`);
-      }
-
-      const deletedList = combinedLines.filter((line) => line.id !== lines.id);
-      const totals = calculateTotals(deletedList);
-      const updatedCombinedLines = updatePaymentLines(
-        deletedList,
-        totals.paymentBalance
-      );
-      setCombinedLines(updatedCombinedLines);
-      await saveAccountBook(updatedCombinedLines, null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (typeof lines.id === "number") {
-        await loadAccountLines(accountBook.id);
-      }
-    }
-  };
-
-  const handleAddProductLine = () => {
-    if (!accountBook) return;
-    lineID.current++;
-    const date = new Date().toISOString();
-
-    const newProductLine: accountLine = {
-      id: `temp-${lineID.current}`,
-      name: "",
-      account_book_id: accountBook.id,
-      net_price: "",
-      amount: "1",
-      price: "",
-      tax: "20",
-      discount: "0",
-      total_price: "",
-      date,
-    };
-
-    setCombinedLines((prev) => [
-      ...(prev ?? []),
-      { kind: "product", ...newProductLine },
-    ]);
-
-    setClickedLineId(newProductLine.id);
-    setLineChange(true);
-  };
-
-  const handleAddNewPayment = () => {
-    if (!accountBook) return;
-    lineID.current++;
-    const newId = `temp-${lineID.current}`;
-    setClickedLineId(newId);
-    for (const line of combinedLines) {
-      if (typeof line.id === "number" || line.kind === "product") continue;
-      if (line.payment === "0") {
-        setErrors({ ...errors, [line.id]: "Ödeme 0 olamaz" });
-        return;
-      }
-    }
-    const newPaymentLine: payments = {
-      id: newId,
-      name: "",
-      payment: "0",
-      old_debt: String(totals.totalGross - totals.totalPayment),
-      old_balance: String(accountBook.balance),
-      account_book_id: accountBook.id,
-      date: new Date().toISOString(),
-    };
-
-    setCombinedLines((prev) => [
-      ...(prev ?? []),
-      { kind: "payment", ...newPaymentLine },
-    ]);
-    setClickedLineId(newId);
-    setLineChange(true);
-  };
-
-  const handleProductLineChange = (
-    id: number | string,
-    data: Partial<accountLine>
-  ) => {
-    setCombinedLines((prevLines) => {
-      if (!prevLines) return null;
-
-      const updatedLines = prevLines.map((line) => {
-        if (String(line.id) === String(id)) {
-          const updated = { ...line, ...data };
-          return updated;
-        }
-        return line;
-      });
-      return updatedLines;
-    });
-  };
-
-  const handlePaymentChange = (
-    id: number | string,
-    data: Partial<payments>
-  ) => {
-    if (errors[id]) {
-      const newErrors = { ...errors };
-      delete newErrors[id];
-      setErrors(newErrors);
-    }
-    setCombinedLines((prevLines) => {
-      if (!prevLines) return null;
-
-      const updatedLines = prevLines.map((line) => {
-        if (String(line.id) === String(id)) {
-          const updated = { ...line, ...data };
-          return updated;
-        }
-        return line;
-      });
-      return updatedLines;
-    });
-  };
 
   const totals = calculateTotals(combinedLines);
 
@@ -257,7 +82,6 @@ export function AddAccountBook({
         className="modal-content big card"
         onClick={(e) => {
           e.stopPropagation();
-          setClickedLineId(null);
         }}
         style={{ display: "flex", flexDirection: "column", maxHeight: "90vh" }}
       >
@@ -305,7 +129,7 @@ export function AddAccountBook({
               className="btn btn-primary"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddProductLine();
+                listRef.current?.addLine("product");
               }}
               title="Yeni ürün ekle"
             >
@@ -316,7 +140,7 @@ export function AddAccountBook({
               title="Ödeme Ekle"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddNewPayment();
+                listRef.current?.addLine("payment");
               }}
             >
               <img src={payment} alt="Payment" />
@@ -327,7 +151,13 @@ export function AddAccountBook({
           </button>
         </div>
 
-        <div className="card-content big">
+        <div
+          className="card-content big"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+          >
           <div className="bill-header">
             <p>Tarih</p>
             <strong>Açıklama</strong>
@@ -338,46 +168,17 @@ export function AddAccountBook({
               <p>Toplam</p>
             </div>
           </div>
-          {(combinedLines ?? []).map((line) => (
-            <div
-              key={`${line.kind}-${line.id}`}
-              className=""
-              onClick={(e) => {
-                e.stopPropagation();
-                setClickedLineId(line.id);
+              <GetAccountBookList
+              userId={userId}
+              accountBookId={accountBook.id}
+              ref={listRef}
+              onChange={(data) => {
+                console.log(data);
+                setCombinedLines(data);
+                setLineChange(true);
               }}
-            >
-              {line.kind === "product" ? (
-                <ProductLine
-                  _name={line.name}
-                  _amount={line.amount}
-                  _discount={line.discount}
-                  _price={line.price}
-                  _net_price={line.net_price}
-                  _tax={line.tax}
-                  _date={line.date}
-                  isClicked={clickedLineId === line.id}
-                  onDelete={() => handleLineDelete(line)}
-                  onChange={(data) => {
-                    handleProductLineChange(line.id, data);
-                    setLineChange(true);
-                  }}
-                />
-              ) : (
-                <PaymentLine
-                  isClicked={clickedLineId === line.id}
-                  isDisplay={clickedLineId !== line.id}
-                  _payment={line}
-                  onDelete={() => {handleLineDelete(line)}}
-                  onChange={(data) => {
-                    handlePaymentChange(line.id, data);
-                    setLineChange(true);
-                  }}
-                  error={errors[line.id] || null}
-                />
-              )}
-            </div>
-          ))}
+              />
+
         </div>
         <div
           className="card-footer"
@@ -423,8 +224,14 @@ export function AddAccountBook({
                 className="btn btn-primary card-flex"
                 disabled={saving}
               >
-                <img src={saveButton} alt="save" />
-                <strong>Kaydet</strong>
+                {saving ?
+                  <img src={loadSpin} alt="Loading" className="spin-animation" />
+                :
+                <>
+                  <img src={saveButton} alt="save" />
+                  <strong>Kaydet</strong>
+                </>
+                }
               </button>
             </div>
           )}
