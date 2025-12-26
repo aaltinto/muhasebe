@@ -1,4 +1,4 @@
-import errorRed from "../../../assets/error_red.svg";
+import errorRed from "../assets/error_red.svg";
 
 interface Props {
   title?: string;

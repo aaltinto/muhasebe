@@ -110,7 +110,7 @@
 }
 
 .card-content.big {
-    max-height: 60vh;
+    max-height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
     padding-top: 0;
@@ -265,6 +265,12 @@
     padding: 3rem 2rem;
     color: rgba(241, 245, 249, 0.4);
     font-size: 1.1rem;
+}
+
+.empty-state-small {
+    text-align: center;
+    color: rgba(241, 245, 249, 0.4);
+    font-size: 0.9rem;
 }
 
 /* Light theme adjustments */

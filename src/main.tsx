@@ -6,12 +6,13 @@ import MainPage from "./pages/MainPage";
 import Settings from "./pages/Settings";
 import Accounts from "./pages/Accounts/Accounts";
 import AccountsSum from "./pages/Accounts/AccountsSum";
-import Stocks from "./pages/Stocks";
+import Stocks from "./pages/Stocks/Stocks";
 import Reports from "./pages/Reports";
 import AccountDetail from "./pages/Accounts/AccountDetail";
+import StockDetails from "./pages/Stocks/StockDetail";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
+
     <HashRouter>
       <Routes>
         <Route path="/" element={<App />}>
@@ -22,9 +23,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           <Route path="/accounts/suppliers" element={<Accounts />} />
           <Route path="/accounts/:type/:id" element={<AccountDetail />} />
           <Route path="/stocks" element={<Stocks />} />
+          <Route path="/stocks/:id" element={<StockDetails/>} />
           <Route path="/reports" element={<Reports />} />
         </Route>
       </Routes>
     </HashRouter>
-  </React.StrictMode>
 );

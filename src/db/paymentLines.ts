@@ -23,8 +23,9 @@ export async function savePayment(
       const result = await db.execute(
         `
       UPDATE payments
-      SET name = ?, payment = ?, old_debt = ?, account_book_id = ?, date = ?`,
-        [name, payment, old_debt, account_book_id, date]
+      SET name = ?, payment = ?, old_debt = ?, account_book_id = ?, date = ?
+      WHERE id = ?`,
+        [name, payment, old_debt, account_book_id, date, id]
       );
 
       if (!result.lastInsertId) {
@@ -40,7 +41,7 @@ export async function savePayment(
       `
       INSERT INTO payments
       (name, payment, old_debt, account_book_id, date)
-      VALUES (?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?)`,
       [name, payment, old_debt, account_book_id, date]
     );
 

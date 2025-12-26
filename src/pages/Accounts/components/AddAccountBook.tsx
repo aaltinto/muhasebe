@@ -14,8 +14,6 @@ import { payments } from "../../../db/paymentLines";
 import calculateTotals from "../utils/calculateTotals";
 import { createAccountBook, loadAccountLines } from "../utils/loadPage";
 import GetAccountBookList from "./GetAccountBookList";
-import { AccountBookListRef } from "./GetAccountBookList";
-
 interface AddAccountBookProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +27,7 @@ export function AddAccountBook({
   accountBookData,
   userId,
 }: AddAccountBookProps) {
-  const listRef = useRef<AccountBookListRef | null>(null);
+  const lineID = useRef(1);
   const [accountBookTitle, setAccountBookTitle] = useState<string | null>(null);
   const [accountBook, setAccountBook] = useState<accountBook | null>(null);
   const [saving, setSaving] = useState(false);
@@ -46,6 +44,7 @@ export function AddAccountBook({
   useEffect(() => {
     const init = async () => {
       if (!isOpen) return;
+      setLineChange(false);
       try {
         let book = accountBookData;
 
@@ -54,8 +53,8 @@ export function AddAccountBook({
         }
         if (book) {
           setAccountBook(book);
+          setAccountBookTitle(book.name);
           const mergedLines = await loadAccountLines(book.id);
-          // await sleep(1000);
           setCombinedLines(mergedLines);
         }
       } catch (err) {
@@ -65,14 +64,105 @@ export function AddAccountBook({
     };
 
     init();
-
-    if (accountBook) setAccountBookTitle(accountBook.name);
   }, [userId, isOpen, accountBookData]);
 
   if (!isOpen) return null;
 
-  if (!combinedLines || !accountBook) return null;
+  const handleAddLine = (
+    kind: "product" | "payment"
+  ) => {
+    if (!accountBook || !combinedLines) return;
+    
+    lineID.current++;
+    const date = new Date().toISOString();
+    let newId = `temp-${lineID.current}`;
+    let updatedCombinedLines = combinedLines;
+    const totals = calculateTotals(combinedLines);
 
+    let newLine: accountLine | payments;
+    if (kind === "product") {
+      const tmpProduct = combinedLines.filter(
+        (line) => typeof line.id === "string"
+      );
+      for (const line of tmpProduct) {
+        if (
+          (line.kind === "payment" &&
+            (line.payment === "" || !line.payment || line.payment === "0") &&
+            typeof line.id === "string") ||
+          (line.kind === "product" &&
+            (!line.net_price || line.net_price === "") &&
+            (line.name === "" || !line.name) &&
+            typeof line.id === "string")
+        ) {
+          newId = line.id;
+          if (line.kind === "payment") {
+            updatedCombinedLines = combinedLines.filter(
+              (line) => line.id != newId
+            );
+            break;
+          }
+          return;
+        }
+      }
+
+      newLine = {
+        id: newId,
+        name: "",
+        account_book_id: accountBook.id,
+        net_price: "",
+        amount: "1",
+        price: "",
+        tax: "20",
+        discount: "0",
+        total_price: "",
+        date,
+      };
+    } else {
+      const tmpProduct = combinedLines.filter(
+        (line) => typeof line.id === "string"
+      );
+      for (const line of tmpProduct) {
+        if (
+          (line.kind === "payment" &&
+            (line.payment === "" || !line.payment || line.payment === "0") &&
+            typeof line.id === "string") ||
+          (line.kind === "product" &&
+            (!line.net_price || line.net_price === "") &&
+            (line.name === "" || !line.name) &&
+            typeof line.id === "string")
+        ) {
+          newId = line.id;
+          if (line.kind === "product") {
+            updatedCombinedLines = combinedLines.filter(
+              (line) => line.id != newId
+            );
+            break;
+          }
+          return;
+        }
+      }
+
+      newLine = {
+        id: newId,
+        name: "",
+        payment: "0",
+        old_debt: String(totals.totalGross - totals.totalPayment),
+        account_book_id: accountBook.id,
+        date: date,
+      };
+    }
+    updatedCombinedLines = [
+      ...(updatedCombinedLines ?? []),
+      (kind === "product"
+        ? { kind: "product" as const, ...newLine }
+        : { kind: "payment" as const, ...newLine }) as
+        | ({ kind: "product" } & accountLine)
+        | ({ kind: "payment" } & payments),
+    ];
+
+    setCombinedLines(updatedCombinedLines);
+    setLineChange(true);
+  };
 
   const totals = calculateTotals(combinedLines);
 
@@ -95,7 +185,7 @@ export function AddAccountBook({
                     setLineChange(true);
                     setAccountBookTitle(e.target.value);
                   }}
-                  value={accountBookTitle ?? accountBook.name}
+                  value={accountBookTitle ?? (accountBook ? accountBook.name : "-")}
                   placeholder="Hesap defteri başlığı"
                   style={{ fontSize: "1.1rem", fontWeight: 600 }}
                 />
@@ -111,7 +201,7 @@ export function AddAccountBook({
               </div>
             ) : (
               <div className="btn-group card-flex">
-                <h2>{accountBookTitle ?? accountBook.name}</h2>
+                <h2>{accountBookTitle ?? (accountBook ? accountBook.name : "-")}</h2>
                 <button
                   className="btn btn-secondary btn-small"
                   onClick={(e) => {
@@ -129,7 +219,7 @@ export function AddAccountBook({
               className="btn btn-primary"
               onClick={(e) => {
                 e.stopPropagation();
-                listRef.current?.addLine("product");
+                handleAddLine("product");
               }}
               title="Yeni ürün ekle"
             >
@@ -140,7 +230,7 @@ export function AddAccountBook({
               title="Ödeme Ekle"
               onClick={(e) => {
                 e.stopPropagation();
-                listRef.current?.addLine("payment");
+                handleAddLine("payment");
               }}
             >
               <img src={payment} alt="Payment" />
@@ -169,11 +259,9 @@ export function AddAccountBook({
             </div>
           </div>
               <GetAccountBookList
-              userId={userId}
-              accountBookId={accountBook.id}
-              ref={listRef}
+              accountBookId={accountBook ? accountBook.id : -1}
+              combinedLines={combinedLines}
               onChange={(data) => {
-                console.log(data);
                 setCombinedLines(data);
                 setLineChange(true);
               }}
@@ -209,7 +297,7 @@ export function AddAccountBook({
               </p>
             </div>
           </div>
-          {isLineChanged && (
+          {isLineChanged && combinedLines && accountBookTitle && accountBook && (
             <div className="btn-group">
               <button onClick={onClose} className="btn btn-secondary">
                 İptal
@@ -217,7 +305,27 @@ export function AddAccountBook({
               <button
                 onClick={async () => {
                   setSaving(true);
-                  await saveAccountBook(combinedLines, accountBookTitle);
+                  // Filter out temporary empty lines before saving
+                  const validLines = combinedLines.filter(line => {
+                    if (typeof line.id === 'string') {
+                      // Skip temporary product lines that are empty
+                      if (line.kind === 'product' && (!line.name || !line.net_price)) {
+                        return false;
+                      }
+                      // Skip temporary payment lines that are empty
+                      if (line.kind === 'payment' && (!line.payment || line.payment === '0')) {
+                        return false;
+                      }
+                    }
+                    return true;
+                  });
+                  
+                  if (validLines.length === 0) {
+                    setSaving(false);
+                    return;
+                  }
+                  
+                  await saveAccountBook(validLines, accountBookTitle);
                   setSaving(false);
                   setLineChange(false);
                 }}

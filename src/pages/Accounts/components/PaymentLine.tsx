@@ -56,7 +56,6 @@ export default function PaymentLine({
       nameInputRef.current = null;
     }
   });
-  console.log(error);
 
   if (isClicked) {
     return (

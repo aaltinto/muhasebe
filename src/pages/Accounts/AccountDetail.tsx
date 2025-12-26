@@ -26,7 +26,6 @@ export default function AccountDetail() {
   const [deleting, setDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
-  // const [isPaymentOpen, setPaymentOpen] = useState(false);
 
   const navigate = useNavigate();
   const { type, id } = useParams<{ type: account_type; id: string }>();
@@ -51,17 +50,10 @@ export default function AccountDetail() {
   const fetchAccountBooks = async () => {
     try {
       if (!accounts) {
-        console.log("accounts empty");
         return;
       }
       setLoading(true);
       const result = await getAccountBooks(accounts.id);
-      console.log(
-        "account book result success",
-        result.success,
-        "lenght",
-        result.length
-      );
       if (result.success) {
         setAccountBooks(result.accountBooks);
       } else {
@@ -100,10 +92,8 @@ export default function AccountDetail() {
 
   const handleDelete = async () => {
     if (!accounts) {
-      console.log("accounts empty");
       return;
     }
-    console.log("Delete button clicked");
     try {
       setDeleting(true);
       const result = await deleteAccount(Number(id));
@@ -190,7 +180,6 @@ export default function AccountDetail() {
                   className="account-book-item card-compact card"
                   onClick={() => {
                     setSelectedAccountBooks(book);
-                    console.log("account clicked\n", "selected book:", book);
                     setRegisterModalOpen(true);
                   }}
                 >

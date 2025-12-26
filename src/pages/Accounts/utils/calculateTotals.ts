@@ -7,10 +7,20 @@ export default function calculateTotals(
     | ({
         kind: "payment";
       } & payments)
-  >
+  > | null
 ) {
     let totalnet_price = 0, totalDiscount = 0, totalTax = 0, totalGross = 0, totalPayment = 0;
     let paymentBalance: Record < number | string, { balance: number, old_debt: number}> = {};
+    if (!combinedLines) {
+        return {
+        totalnet_price,
+        totalDiscount,
+        totalTax,
+        totalGross,
+        totalPayment,
+        paymentBalance
+    }
+    }
     for (const lines of combinedLines) {
         if (lines.kind === "product") {
             const net_price = parseFloat(lines.net_price) || 0;

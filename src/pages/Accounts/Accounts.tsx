@@ -4,8 +4,7 @@ import { getAccounts, accounts } from "../../db/accounts";
 import { account_type } from "../../db/accounts";
 import { localeDate } from "./utils/localeDate";
 import AddAccountModal from "./components/AddAccountModal";
-import { sleep } from "./utils/sleep";
-import loadSpin from "../../assets/progress.svg"
+import { LoadingState } from "../../components/LoadingState";
 
 export interface AccountProps {
   id: number;
@@ -25,7 +24,6 @@ function GetList({ accountType }: { accountType: account_type; }) {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      // await sleep(2000);
       const result = await getAccounts(accountType);
       setAccounts(result);
       setError(null);
@@ -41,13 +39,7 @@ function GetList({ accountType }: { accountType: account_type; }) {
     fetchAccounts();
   }, [accountType]);
 
-  if (loading) return (<div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-          <img src={loadSpin} alt="Loading" className="spin-animation" style={{ width: "48px", height: "48px" }} />
-        </div>);
+  if (loading) return <LoadingState/>
   if (error) return <div>Error: {error}</div>;
   if (!accounts) return null;
   
@@ -146,7 +138,6 @@ export default function Accounts() {
         accountType={accountType}
         onAccountAdded={(newAccountId: number | null) => {
           setIsModalOpen(false);
-          console.log("newID", newAccountId);
           if (newAccountId) {
             navigate(`${newAccountId}`)
           }

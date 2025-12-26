@@ -29,13 +29,18 @@ export async function createAccountBook (userId: number) {
       if (!result.success) {
         throw result.error;
       }
-      if (result.payments) {
-        return result.payments;
-      }
-      return [];
+      return {
+        success: true,
+        payments: result.payments ? result.payments : [],
+        error: null
+      };
     } catch (err) {
       console.error(err);
-      return [];
+      return {
+        success: false,
+        payments: null,
+        error: err
+      }
     }
   };
 
@@ -61,18 +66,22 @@ export async function createAccountBook (userId: number) {
       });
 
       const pmts = await loadPayments(account_book_id);
+      if (!pmts.success || !pmts.payments) {
+        throw pmts.error
+      }
+      const payments = pmts.payments;
       const productDisplay = lines.map((l) => ({ kind: "product" as const, ...l }));
-      const paymentDisplay = pmts.map((p) => ({ kind: "payment" as const, ...p }));
+      const paymentDisplay = payments.map((p) => ({ kind: "payment" as const, ...p }));
 
       const merged = [...productDisplay, ...paymentDisplay].sort((a, b) => {
         const da = new Date(a.date as string).getTime();
         const db = new Date(b.date as string).getTime();
         return da - db;
       });
-
+      // throw "Test Error";
       return merged;
     } catch (err) {
       console.error(err);
-      return [];
+      return null;
     }
   };

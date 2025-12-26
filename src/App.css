@@ -196,9 +196,10 @@ body {
   border-left: 3px solid var(--accent-dark);
 }
 
-.dropdown:hover .dropdown-menu {
+.dropdown.open .dropdown-menu {
   max-height: 200px;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .dropdown-menu li {
@@ -454,6 +455,14 @@ body.light .success-card {
 
 .btn-group.large-gap {
   gap: 3rem;
+}
+
+.btn.active {
+  background-color: var(--accent-hover-dark);
+}
+
+.btn.active:hover {
+  background-color: var(--accent-hover-dark);
 }
 
 .btn {

@@ -1,5 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tauri_plugin_sql::{Migration, MigrationKind};  
+use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri::Emitter;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -60,22 +61,42 @@ pub fn run() {
         },
         Migration {  
             version: 4,  
-            description: "create products table",  
-            sql: "CREATE TABLE IF NOT EXISTS products (  
+            description: "create type table",  
+            sql: "CREATE TABLE IF NOT EXISTS types (  
                 id INTEGER PRIMARY KEY AUTOINCREMENT,  
-                name TEXT NOT NULL,
-                type TEXT NOT NULL,
-                brand TEXT NOT NULL,
-                supplier TEXT NOT NULL,
-                barcode INTEGER NOT NULL DEFAULT 0,
-                count INTEGER NOT NULL DEFAULT 0,
-                price INTEGER NOT NULL,
-                tax INTEGER NOT NULL DEFAULT 20
+                name TEXT NOT NULL UNIQUE
             )",
             kind: MigrationKind::Up,  
         },
         Migration {  
             version: 5,  
+            description: "create brand table",  
+            sql: "CREATE TABLE IF NOT EXISTS brands (  
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                name TEXT NOT NULL UNIQUE
+            )",
+            kind: MigrationKind::Up,  
+        },
+        Migration {  
+            version: 6,  
+            description: "create products table",  
+            sql: "CREATE TABLE IF NOT EXISTS products (  
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                name TEXT NOT NULL,
+                type TEXT,
+                product_code TEXT,
+                brand TEXT NOT NULL,
+                supplier TEXT,
+                barcode TEXT UNIQUE,
+                count INTEGER NOT NULL DEFAULT 0,
+                cost INTEGER,
+                FOREIGN KEY (type) REFERENCES types(name),
+                FOREIGN KEY (brand) REFERENCES brands(name)
+            )",
+            kind: MigrationKind::Up,  
+        },
+        Migration {  
+            version: 7,  
             description: "create payments table",  
             sql: "CREATE TABLE IF NOT EXISTS payments (  
                 id INTEGER PRIMARY KEY AUTOINCREMENT,  
@@ -87,7 +108,7 @@ pub fn run() {
                 FOREIGN KEY (account_book_id) REFERENCES account_book(id) ON DELETE CASCADE
             )",
             kind: MigrationKind::Up,  
-        }
+        },
     ];  
 
     tauri::Builder::default()
@@ -95,6 +116,14 @@ pub fn run() {
             .add_migrations("sqlite:base.db", migrations)
             .build()
         )
+        .on_page_load(|window, _| {
+            println!("Emitting backend-ready event");
+            window.eval("window.__TAURI_BACKEND_READY__ = true;").ok();
+            window
+                .emit("backend-ready", ())
+                .expect("failed to emit backend-ready");
+            println!("backend-ready event emitted");
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())

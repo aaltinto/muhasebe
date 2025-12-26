@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import dashboard from "../assets/dashboard.svg";
 import settings from "../assets/settings.svg";
 import accounts from "../assets/account.svg";
@@ -8,6 +9,11 @@ import reports from "../assets/reports.svg";
 
 export default function Navbar() {
   const location = useLocation();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const toggleDropdown = (name: string) => {
+    setOpenDropdown(openDropdown === name ? null : name);
+  };
 
   return (
     <aside className="sidebar">
@@ -17,7 +23,7 @@ export default function Navbar() {
       <nav className="sidebar-nav">
         <ul>
           <li>
-            <Link to="/" className={location.pathname === "/" ? "active" : ""}>
+            <Link to="/" className={location.pathname === "/sales" ? "active" : ""}>
               <div className="sidebar-items">
                 <img src={dashboard} alt="dashboard" />
                 <p>Ana Sayfa</p>
@@ -32,12 +38,16 @@ export default function Navbar() {
               </div>
             </Link>
           </li>
-          <li className="dropdown">
+          <li className={`dropdown ${openDropdown === "accounts" ? "open" : ""}`}>
             <Link
               to="/accounts"
               className={
                 location.pathname.startsWith("/accounts") ? "active" : ""
               }
+              onClick={(e) => {
+                e.preventDefault();
+                toggleDropdown("accounts");
+              }}
             >
               <div className="sidebar-items">
                 <img src={accounts} alt="accounts" />
@@ -70,7 +80,7 @@ export default function Navbar() {
           <li>
             <Link
               to="/stocks"
-              className={location.pathname === "/stocks" ? "active" : ""}
+              className={location.pathname.startsWith("/stocks") ? "active" : ""}
             >
               <div className="sidebar-items">
                 <img src={stocks} alt="reports" />

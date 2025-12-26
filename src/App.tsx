@@ -2,9 +2,46 @@ import { Outlet, useLocation } from "react-router-dom";
 import "./App.css";
 import Navbar from "./pages/Navbar";
 import SearchBar from "./components/Searchbar";
+import { useEffect, useState } from "react";
+import { LoadingState } from "./components/LoadingState";
 
 function App() {
+  const [appReady, setAppReady] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const checkBackend = () => {
+      if ((window as any).__TAURI_BACKEND_READY__) {
+        console.log('Backend ready detected');
+        setAppReady(true);
+        return true;
+      }
+      return false;
+    };
+
+    // Check immediately
+    if (checkBackend()) return;
+
+    // Poll every 100ms if not ready yet
+    const interval = setInterval(() => {
+      if (checkBackend()) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    // Cleanup
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!appReady) {
+    return (
+      <div>
+        <LoadingState/>
+      </div>
+    )
+  }
+
+
   const getPages = (path: string) => {
     const parts = path.split('/');
     switch (parts[1]) {

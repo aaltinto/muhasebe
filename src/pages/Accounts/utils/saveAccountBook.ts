@@ -62,7 +62,6 @@ async function saveAccountLine(line: accountLine) {
   if (!amount || !net_price || !tax || !price || !line_total) {
     return 0;
   }
-  console.log("saveAccountLine: discount", discount);
   const result = await createAccountLine(
     line.name,
     line.account_book_id,
@@ -139,7 +138,6 @@ export async function saveAccountBook(
           continue;
         }
       }
-      console.log("saveAccountBook",line.discount)
       await saveAccountLine(line);
     }
     const totals = calculateTotals(combinedLines);
